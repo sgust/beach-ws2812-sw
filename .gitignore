@@ -1,3 +1,4 @@
 *.o
 beach-ws2812.axf
 beach-ws2812.hex
+refman.sh
