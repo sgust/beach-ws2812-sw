@@ -6,6 +6,7 @@
 #include "common.h"
 #include "systick.h"
 #include "ws2812b.h"
+#include "beach.h"
 
 #ifdef __cplusplus
 extern "C" int _write (int fd, char *ptr, int len);
@@ -60,7 +61,7 @@ void fullspeed()
 
 int main(void)
 {
-	int i;
+	int i, j;
 
 	fullspeed();
 
@@ -83,32 +84,49 @@ int main(void)
 
 	printf("IRQ on\r\n");
 
-	screen[0].red = 255;
-	screen[0].green = 0;
-	screen[0].blue = 0;
-
-	screen[1].red = 0;
-	screen[1].green = 255;
-	screen[1].blue = 0;
-
-	screen[2].red = 0;
-	screen[2].green = 0;
-	screen[2].blue = 255;
-
-	screen[3].red = 255;
-	screen[3].green = 255;
-	screen[3].blue = 255;
-
-	for(i = 4; i < NUMLEDS; i++) {
-		screen[i].red = 0x10;
-		screen[i].green = 0x10;
-		screen[i].blue = 0x10;
+	/* clear screen */
+	for(i = 0; i < NUMLEDS; i++) {
+		screen[i].red = screen[i].green = screen[i].blue = 0;
 	}
+	if (rgbled_update(screen, NUMLEDS)) printf("CLS failed");
+	rgbled_vsync();
 
+	setwave(screen, 0, &pix_water);
+	setwave(screen, 1, &pix_sand);
+
+	if (rgbled_update(screen, NUMLEDS)) printf("Test1 failed");
+	rgbled_vsync();
+
+	systicktimer_sleepms(1000);
+
+	if (rgbled_update(screen, NUMLEDS)) printf("Test2 failed");
+	rgbled_vsync();
+
+	systicktimer_sleepms(10000);
+
+	j = 0;
 	while (1) {
-		printf(".\r\n");
+		for(i = 0; i < NUMLEDS; i++) {
+			screen[i].red = 0x10;
+			screen[i].green = 0x10;
+			screen[i].blue = 0x10;
+		}
+		screen[j].red = 255;
+		screen[j].green = 0;
+		screen[j].blue = 0;
+		screen[(j+1)%NUMLEDS].red = 0;
+		screen[(j+1)%NUMLEDS].green = 255;
+		screen[(j+1)%NUMLEDS].blue = 0;
+		screen[(j+2)%NUMLEDS].red = 0;
+		screen[(j+2)%NUMLEDS].green = 0;
+		screen[(j+2)%NUMLEDS].blue = 255;
+		screen[(j+3)%NUMLEDS].red = 255;
+		screen[(j+3)%NUMLEDS].green = 255;
+		screen[(j+3)%NUMLEDS].blue = 255;
+		if (++j >= NUMLEDS) j = 0;
 		rgbled_update(screen, NUMLEDS);
-		systicktimer_sleepms(500);
+		rgbled_vsync();
+		systicktimer_sleepms(10);
 	}
 
 	return 0;

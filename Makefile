@@ -4,7 +4,7 @@ CC=arm-none-eabi-gcc
 # Options for specific architecture
 ARCH_FLAGS=-mthumb -mcpu=cortex-m3 -DSTM32F10X_MD=1
 
-OBJ=startup_ARMCM3.o main.o systick.o ws2812b.o
+OBJ=startup_ARMCM3.o main.o systick.o ws2812b.o beach.o
 
 CFLAGS=	-mthumb -mcpu=cortex-m3 -DSTM32F10X_MD=1 \
 	-Wall -Os -std=c11 -flto -fno-builtin \
