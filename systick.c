@@ -27,5 +27,4 @@ void systicktimer_sleepms(unsigned int ms)
 void __attribute__ ((interrupt)) SysTick_Handler(void)
 {
 	if (delaytick) delaytick--;
-//	_write(0, ".", 1);
 }
