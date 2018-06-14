@@ -5,9 +5,14 @@
 #include "stm32f10x.h"
 #include "common.h"
 #include "ws2812b.h"
+#include "beach.h"
+
+/* some colors */
+const Pixel pix_sand = { 0x80, 0x40, 0x00 };
+const Pixel pix_water = { 0x00, 0x00, 0x80 };
 
 /* set 1 pixel to color col */
-void setpixel(Pixel *scr, Pixel *col)
+void setpixel(Pixel *scr, const Pixel *col)
 {
 	scr->red = col->red;
 	scr->green = col->green;
@@ -15,21 +20,32 @@ void setpixel(Pixel *scr, Pixel *col)
 }
 
 /* set all LEDs for wave w to color col */
-void setwave(Pixel *scr, int w, Pixel *col)
+void setwave(Pixel *scr, int w, const Pixel *col)
 {
 	switch (w) {
 		case 0:
-			setpixel(&scr[0], col);
-			setpixel(&scr[1], col);
-			setpixel(&scr[2], col);
+			setpixel(&scr[L201], col);
+			setpixel(&scr[L202], col);
+			setpixel(&scr[L203], col);
 			break;
 		case 1:
-			setpixel(&scr[4], col);
-			setpixel(&scr[5], col);
-			setpixel(&scr[6], col);
-			setpixel(&scr[11], col);
-			setpixel(&scr[12], col);
-			setpixel(&scr[13], col);
+			setpixel(&scr[L205], col);
+			setpixel(&scr[L206], col);
+			setpixel(&scr[L207], col);
+			setpixel(&scr[L212], col);
+			setpixel(&scr[L213], col);
+			setpixel(&scr[L214], col);
+			break;
+		case 2:
+			setpixel(&scr[L208], col);
+			setpixel(&scr[L209], col);
+			setpixel(&scr[L210], col);
+			setpixel(&scr[L222], col);
+			setpixel(&scr[L221], col);
+			setpixel(&scr[L220], col);
+			setpixel(&scr[L216], col);
+			setpixel(&scr[L217], col);
+			setpixel(&scr[L219], col);
 			break;
 	}
 }

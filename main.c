@@ -1,6 +1,9 @@
 /* Control software for beach scene done with 173 WS2812 LEDs */
 
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <ctype.h>
 
 #include "stm32f10x.h"
 #include "common.h"
@@ -32,7 +35,13 @@ void init_uart(USART_TypeDef *uart, unsigned int baud)
 	uart->CR1 &= ~USART_CR1_M; /* 8 bit */
 	uart->CR2 &= ~(USART_CR2_STOP_0 | USART_CR2_STOP_1); /* 1 stop bit */
 	uart->CR1 |= USART_CR1_TE;
+	uart->CR1 |= USART_CR1_RE;
 	uart->BRR = SYSCLK / baud;
+}
+
+int uart_getc(USART_TypeDef *uart)
+{
+	if (uart->SR & USART_SR_RXNE) return (uint8_t) uart->DR; else return -1;
 }
 
 /* 8 MHz HSE with PLL to 72MHz */
@@ -59,9 +68,67 @@ void fullspeed()
 	RCC->CFGR = (RCC->CFGR & ~RCC_CFGR_SW) | RCC_CFGR_SW_PLL;
 }
 
+/* inserts a \0 at the first whitespace
+ *   buf  pointer to string, must be \0 terminated!
+ *   size size of buf
+ * Return
+ *   pointer to the next non-whitespace or NULL if error
+ */
+char *parse_word(char *buf)
+{
+	char *p;
+
+	for(p = buf; *p; p++) {
+		if (isspace(*p)) {
+			*p = 0;
+			for(p++; *p; p++) {
+				if (!isspace(*p)) break;
+			}
+			break;
+		}
+	}
+	return p;
+}
+
+void cmd_led(char *s);
+
+/* handle debug console commands */
+void debugcommand(char *s)
+{
+	char *para;
+
+	para = parse_word(s);
+	printf("\r\n");
+	if (!strcmp(s, "led")) cmd_led(para);
+	else printf("ERROR: unknown command\r\n");
+}
+
+/* led <num> <r> <g> <b> */
+void cmd_led(char *s)
+{
+	char *r, *g, *b;
+	int led;
+
+	r = parse_word(s);
+	g = parse_word(r);
+	b = parse_word(g);
+
+	led = strtol(s, NULL, 0);
+	if ((led < 0) || (led >= NUMLEDS)) {
+		printf("ERROR: LED out of range\r\n");
+		return;
+	}
+	screen[led].red = strtol(r, NULL, 0);
+	screen[led].green = strtol(g, NULL, 0);
+	screen[led].blue = strtol(b, NULL, 0);
+	if (rgbled_update(screen, NUMLEDS)) printf("screen update failed\r\n");
+	rgbled_vsync();
+}
+
 int main(void)
 {
-	int i, j;
+	int i, j, c, p;
+	char inputbuf[80];
 
 	fullspeed();
 
@@ -93,16 +160,45 @@ int main(void)
 
 	setwave(screen, 0, &pix_water);
 	setwave(screen, 1, &pix_sand);
+	setwave(screen, 2, &pix_water);
 
-	if (rgbled_update(screen, NUMLEDS)) printf("Test1 failed");
+	if (rgbled_update(screen, NUMLEDS)) printf("Test1 failed\r\n");
 	rgbled_vsync();
 
 	systicktimer_sleepms(1000);
 
-	if (rgbled_update(screen, NUMLEDS)) printf("Test2 failed");
+	if (rgbled_update(screen, NUMLEDS)) printf("Test2 failed\r\n");
 	rgbled_vsync();
 
-	systicktimer_sleepms(10000);
+	p = 0;
+	printf("LED> ");
+	fflush(stdout);
+	while (1) {
+		c = uart_getc(USART1);
+		if (c > 0) {
+			if ((0x0a == c) || (0x0d == c)) {
+				inputbuf[p] = 0;
+				debugcommand(inputbuf);
+				p = 0;
+				printf("LED> ");
+			} else {
+				if ((8 == c) || (127 == c)) {
+					if (p > 0) {
+						p--;
+						printf("\010 \010");
+					} else {
+						printf("\007");
+					}
+				} else {
+					if ((c >= 32) && (c <= 126)) {
+						inputbuf[p++] = c;
+						printf("%c", c);
+					}
+				}
+			}
+		}
+		fflush(stdout);
+	}
 
 	j = 0;
 	while (1) {
