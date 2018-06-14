@@ -161,6 +161,7 @@ int main(void)
 	setwave(screen, 0, &pix_water);
 	setwave(screen, 1, &pix_sand);
 	setwave(screen, 2, &pix_water);
+	setwave(screen, 3, &pix_sand);
 
 	if (rgbled_update(screen, NUMLEDS)) printf("Test1 failed\r\n");
 	rgbled_vsync();

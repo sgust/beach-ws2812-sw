@@ -47,5 +47,19 @@ void setwave(Pixel *scr, int w, const Pixel *col)
 			setpixel(&scr[L217], col);
 			setpixel(&scr[L219], col);
 			break;
+		case 3:
+			setpixel(&scr[L225], col);
+			setpixel(&scr[L226], col);
+			setpixel(&scr[L227], col);
+			setpixel(&scr[L228], col);
+			setpixel(&scr[L230], col);
+			setpixel(&scr[L231], col);
+			setpixel(&scr[L233], col);
+			setpixel(&scr[L234], col);
+			setpixel(&scr[L235], col);
+			setpixel(&scr[L236], col);
+			setpixel(&scr[L238], col);
+			setpixel(&scr[L239], col);
+			break;
 	}
 }
