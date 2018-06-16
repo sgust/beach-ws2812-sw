@@ -179,9 +179,14 @@
 #define L613 172
 
 /* some colors */
-extern const Pixel pix_sand;
-extern const Pixel pix_water;
+extern const Pixel Pix_sand;
+extern const Pixel Pix_water;
+extern const Pixel Pix_water2;
+
+/* animation control */
+extern int anim_wave_state;
 
 void setpixel(Pixel *scr, const Pixel *col);
 void setwave(Pixel *scr, int w, const Pixel *col);
+void animate_wave(Pixel *scr);
 #endif

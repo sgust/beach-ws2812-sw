@@ -8,8 +8,9 @@
 #include "beach.h"
 
 /* some colors */
-const Pixel pix_sand = { 0x80, 0x40, 0x00 };
-const Pixel pix_water = { 0x00, 0x00, 0x80 };
+const Pixel Pix_sand = { 0x80, 0x40, 0x00 };
+const Pixel Pix_water = { 0x00, 0x00, 0x80 };
+const Pixel Pix_water2 = { 0x20, 0x40, 0x80 };
 
 /* set 1 pixel to color col */
 void setpixel(Pixel *scr, const Pixel *col)
@@ -61,5 +62,91 @@ void setwave(Pixel *scr, int w, const Pixel *col)
 			setpixel(&scr[L238], col);
 			setpixel(&scr[L239], col);
 			break;
+		case 4:
+			setpixel(&scr[L320], col);
+			setpixel(&scr[L319], col);
+			setpixel(&scr[L318], col);
+			setpixel(&scr[L317], col);
+			setpixel(&scr[L316], col);
+			setpixel(&scr[L315], col);
+			setpixel(&scr[L314], col);
+			setpixel(&scr[L313], col);
+			setpixel(&scr[L311], col);
+			setpixel(&scr[L310], col);
+			setpixel(&scr[L309], col);
+			setpixel(&scr[L307], col);
+			setpixel(&scr[L306], col);
+			setpixel(&scr[L305], col);
+			setpixel(&scr[L304], col);
+			setpixel(&scr[L303], col);
+			setpixel(&scr[L301], col);
+			setpixel(&scr[L240], col);
+			break;
+		case 5:
+			setpixel(&scr[L321], col);
+			setpixel(&scr[L322], col);
+			setpixel(&scr[L323], col);
+			setpixel(&scr[L324], col);
+			setpixel(&scr[L325], col);
+			setpixel(&scr[L326], col);
+			setpixel(&scr[L328], col);
+			setpixel(&scr[L329], col);
+			setpixel(&scr[L330], col);
+			setpixel(&scr[L331], col);
+			setpixel(&scr[L332], col);
+			setpixel(&scr[L333], col);
+			setpixel(&scr[L334], col);
+			setpixel(&scr[L335], col);
+			setpixel(&scr[L336], col);
+			setpixel(&scr[L338], col);
+			setpixel(&scr[L339], col);
+			break;
+		case 6:
+			setpixel(&scr[L419], col);
+			setpixel(&scr[L418], col);
+			setpixel(&scr[L417], col);
+			setpixel(&scr[L416], col);
+			setpixel(&scr[L412], col);
+			setpixel(&scr[L411], col);
+			setpixel(&scr[L409], col);
+			setpixel(&scr[L408], col);
+			setpixel(&scr[L407], col);
+			setpixel(&scr[L406], col);
+			setpixel(&scr[L405], col);
+			setpixel(&scr[L403], col);
+			setpixel(&scr[L402], col);
+			setpixel(&scr[L340], col);
+			break;
 	}
+}
+
+int anim_wave_state = 0;
+
+/* advance wave animate 1 step */
+void animate_wave(Pixel *scr)
+{
+	int i;
+
+	if (anim_wave_state <= 7) {
+		for (i = 0; i <= 6; i++) {
+			if (i < anim_wave_state) {
+				setwave(scr, i, &Pix_water);
+			} else if (i == anim_wave_state) {
+				setwave(scr, i, &Pix_water2);
+			} else {
+				setwave(scr, i, &Pix_sand);
+			}
+		}
+	} else {
+		for (i = 6; i >= 0; i--) {
+			if (i < (14-anim_wave_state)) {
+				setwave(scr, i, &Pix_water);
+			} else if (i == (14-anim_wave_state)) {
+				setwave(scr, i, &Pix_water2);
+			} else {
+				setwave(scr, i, &Pix_sand);
+			}
+		}
+	}
+	if (++anim_wave_state > 15) anim_wave_state = 0;
 }

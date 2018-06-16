@@ -18,6 +18,8 @@ extern "C" int _write (int fd, char *ptr, int len);
 #define NUMLEDS 173
 Pixel screen[NUMLEDS];
 
+#define TIME_WAVE (HZ/2)
+
 int _write (int fd, char *ptr, int len)
 {
 	int i;
@@ -91,6 +93,8 @@ char *parse_word(char *buf)
 }
 
 void cmd_led(char *s);
+void cmd_wave(char *s);
+void cmd_waveanim(char *s);
 
 /* handle debug console commands */
 void debugcommand(char *s)
@@ -100,6 +104,8 @@ void debugcommand(char *s)
 	para = parse_word(s);
 	printf("\r\n");
 	if (!strcmp(s, "led")) cmd_led(para);
+	if (!strcmp(s, "wave")) cmd_wave(para);
+	if (!strcmp(s, "waveanim")) cmd_waveanim(para);
 	else printf("ERROR: unknown command\r\n");
 }
 
@@ -125,10 +131,47 @@ void cmd_led(char *s)
 	rgbled_vsync();
 }
 
+/* wave <num> <r> <g> <b> */
+void cmd_wave(char *s)
+{
+	char *r, *g, *b;
+	int wave;
+	Pixel pix;
+
+	r = parse_word(s);
+	g = parse_word(r);
+	b = parse_word(g);
+
+	wave = strtol(s, NULL, 0);
+	if ((wave < 0) || (wave > 6)) {
+		printf("ERROR: wave out of range\r\n");
+		return;
+	}
+	pix.red = strtol(r, NULL, 0);
+	pix.green = strtol(g, NULL, 0);
+	pix.blue = strtol(b, NULL, 0);
+	setwave(screen, wave, &pix);
+	if (rgbled_update(screen, NUMLEDS)) printf("screen update failed\r\n");
+	rgbled_vsync();
+}
+
+/* waveanim <step> */
+void cmd_waveanim(char *s)
+{
+	int i;
+
+	i = strtol(s, NULL, 0);
+	if ((i >= 0) && (i <= 14)) anim_wave_state = i;
+	animate_wave(screen);
+	if (rgbled_update(screen, NUMLEDS)) printf("screen update failed\r\n");
+	rgbled_vsync();
+}
+
 int main(void)
 {
 	int i, j, c, p;
 	char inputbuf[80];
+	uint64_t t1; /* timeout for anim */
 
 	fullspeed();
 
@@ -158,10 +201,14 @@ int main(void)
 	if (rgbled_update(screen, NUMLEDS)) printf("CLS failed");
 	rgbled_vsync();
 
-	setwave(screen, 0, &pix_water);
-	setwave(screen, 1, &pix_sand);
-	setwave(screen, 2, &pix_water);
-	setwave(screen, 3, &pix_sand);
+	/* initial animation */
+	setwave(screen, 0, &Pix_sand);
+	setwave(screen, 1, &Pix_sand);
+	setwave(screen, 2, &Pix_sand);
+	setwave(screen, 3, &Pix_sand);
+	setwave(screen, 4, &Pix_sand);
+	setwave(screen, 5, &Pix_sand);
+	setwave(screen, 6, &Pix_sand);
 
 	if (rgbled_update(screen, NUMLEDS)) printf("Test1 failed\r\n");
 	rgbled_vsync();
@@ -174,6 +221,7 @@ int main(void)
 	p = 0;
 	printf("LED> ");
 	fflush(stdout);
+	t1 = systicktimer_time() + TIME_WAVE;
 	while (1) {
 		c = uart_getc(USART1);
 		if (c > 0) {
@@ -199,6 +247,12 @@ int main(void)
 			}
 		}
 		fflush(stdout);
+		if (systicktimer_time() > t1) {
+			t1 = systicktimer_time() + TIME_WAVE;
+			animate_wave(screen);
+			if (rgbled_update(screen, NUMLEDS)) printf("screen update failed\r\n");
+			rgbled_vsync();
+		}
 	}
 
 	j = 0;
