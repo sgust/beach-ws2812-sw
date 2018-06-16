@@ -179,9 +179,11 @@
 #define L613 172
 
 /* some colors */
+extern const Pixel Pix_off;
 extern const Pixel Pix_sand;
 extern const Pixel Pix_water;
 extern const Pixel Pix_water2;
+extern const Pixel Pix_skin;
 
 /* animation control */
 extern int anim_wave_state;
@@ -189,4 +191,5 @@ extern int anim_wave_state;
 void setpixel(Pixel *scr, const Pixel *col);
 void setwave(Pixel *scr, int w, const Pixel *col);
 void animate_wave(Pixel *scr);
+void setperson(Pixel *scr, int p, Pixel *shirt, Pixel *pants, int left, int right);
 #endif

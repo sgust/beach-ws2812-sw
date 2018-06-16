@@ -81,10 +81,10 @@ char *parse_word(char *buf)
 	char *p;
 
 	for(p = buf; *p; p++) {
-		if (isspace(*p)) {
+		if (isspace((int) *p)) {
 			*p = 0;
 			for(p++; *p; p++) {
-				if (!isspace(*p)) break;
+				if (!isspace((int) *p)) break;
 			}
 			break;
 		}
@@ -95,6 +95,7 @@ char *parse_word(char *buf)
 void cmd_led(char *s);
 void cmd_wave(char *s);
 void cmd_waveanim(char *s);
+void cmd_person(char *s);
 
 /* handle debug console commands */
 void debugcommand(char *s)
@@ -106,6 +107,7 @@ void debugcommand(char *s)
 	if (!strcmp(s, "led")) cmd_led(para);
 	if (!strcmp(s, "wave")) cmd_wave(para);
 	if (!strcmp(s, "waveanim")) cmd_waveanim(para);
+	if (!strcmp(s, "person")) cmd_person(para);
 	else printf("ERROR: unknown command\r\n");
 }
 
@@ -163,6 +165,35 @@ void cmd_waveanim(char *s)
 	i = strtol(s, NULL, 0);
 	if ((i >= 0) && (i <= 14)) anim_wave_state = i;
 	animate_wave(screen);
+	if (rgbled_update(screen, NUMLEDS)) printf("screen update failed\r\n");
+	rgbled_vsync();
+}
+
+/* person <p> <shirt> <pants> <left> <right> */
+void cmd_person(char *s)
+{
+	char *r1, *r2, *g1, *g2, *b1, *b2, *lh, *rh;
+	Pixel shirt, pants;
+	int person, left, right;
+
+	r1 = parse_word(s);
+	g1 = parse_word(r1);
+	b1 = parse_word(g1);
+	r2 = parse_word(b1);
+	g2 = parse_word(r2);
+	b2 = parse_word(g2);
+	lh = parse_word(b2);
+	rh = parse_word(lh);
+	person = strtol(s, NULL, 0);
+	shirt.red = strtol(r1, NULL, 0);
+	shirt.green = strtol(g1, NULL, 0);
+	shirt.blue = strtol(b1, NULL, 0);
+	pants.red = strtol(r2, NULL, 0);
+	pants.green = strtol(g2, NULL, 0);
+	pants.blue = strtol(b2, NULL, 0);
+	left = strtol(lh, NULL, 0);
+	right = strtol(rh, NULL, 0);
+	setperson(screen, person, &shirt, &pants, left, right);
 	if (rgbled_update(screen, NUMLEDS)) printf("screen update failed\r\n");
 	rgbled_vsync();
 }

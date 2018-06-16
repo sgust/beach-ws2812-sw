@@ -8,9 +8,11 @@
 #include "beach.h"
 
 /* some colors */
+const Pixel Pix_off = { 0, 0, 0 };
 const Pixel Pix_sand = { 0x80, 0x40, 0x00 };
 const Pixel Pix_water = { 0x00, 0x00, 0x80 };
 const Pixel Pix_water2 = { 0x20, 0x40, 0x80 };
+const Pixel Pix_skin = { 0xd2, 0xb4, 0x8c };
 
 /* set 1 pixel to color col */
 void setpixel(Pixel *scr, const Pixel *col)
@@ -149,4 +151,111 @@ void animate_wave(Pixel *scr)
 		}
 	}
 	if (++anim_wave_state > 15) anim_wave_state = 0;
+}
+
+/* set person p shirt and pants color plus control left and right hand (viewer left/right) */
+void setperson(Pixel *scr, int p, Pixel *shirt, Pixel *pants, int left, int right)
+{
+	switch(p) {
+		case 0: /* top left */
+			setpixel(&scr[L429], shirt);
+			setpixel(&scr[L430], shirt);
+			setpixel(&scr[L435], shirt);
+			setpixel(&scr[L436], pants);
+			setpixel(&scr[L437], pants);
+			setpixel(&scr[L515], pants);
+			setpixel(&scr[L431], &Pix_skin); /* head */
+			setpixel(&scr[L438], &Pix_skin); /* left foot */
+			setpixel(&scr[L512], &Pix_skin); /* right foot */
+			if (left) {
+				setpixel(&scr[L404], &Pix_skin);
+				setpixel(&scr[L428], &Pix_off);
+			} else {
+				setpixel(&scr[L404], &Pix_off);
+				setpixel(&scr[L428], &Pix_skin);
+			}
+			if (right) {
+				setpixel(&scr[L517], &Pix_skin);
+				setpixel(&scr[L516], &Pix_off);
+			} else {
+				setpixel(&scr[L517], &Pix_off);
+				setpixel(&scr[L516], &Pix_skin);
+			}
+			break;
+		case 1: /* top right */
+			setpixel(&scr[L519], shirt);
+			setpixel(&scr[L520], shirt);
+			setpixel(&scr[L522], shirt);
+			setpixel(&scr[L525], pants);
+			setpixel(&scr[L528], pants);
+			setpixel(&scr[L613], pants);
+			setpixel(&scr[L521], &Pix_skin); /* head */
+			setpixel(&scr[L530], &Pix_skin); /* left foot */
+			setpixel(&scr[L611], &Pix_skin); /* right foot */
+			if (left) {
+				setpixel(&scr[L518], &Pix_skin);
+				setpixel(&scr[L526], &Pix_off);
+			} else {
+				setpixel(&scr[L518], &Pix_off);
+				setpixel(&scr[L526], &Pix_skin);
+			}
+			if (right) {
+				setpixel(&scr[L523], &Pix_skin);
+				setpixel(&scr[L524], &Pix_off);
+			} else {
+				setpixel(&scr[L523], &Pix_off);
+				setpixel(&scr[L524], &Pix_skin);
+			}
+			break;
+		case 2: /* bottom left */
+			setpixel(&scr[L501], shirt);
+			setpixel(&scr[L440], shirt);
+			setpixel(&scr[L508], shirt);
+			setpixel(&scr[L503], pants);
+			setpixel(&scr[L421], pants);
+			setpixel(&scr[L504], pants);
+			setpixel(&scr[L439], &Pix_skin); /* head */
+			setpixel(&scr[L420], &Pix_skin); /* left foot */
+			setpixel(&scr[L505], &Pix_skin); /* right foot */
+			if (left) {
+				setpixel(&scr[L423], &Pix_skin);
+				setpixel(&scr[L422], &Pix_off);
+			} else {
+				setpixel(&scr[L423], &Pix_off);
+				setpixel(&scr[L422], &Pix_skin);
+			}
+			if (right) {
+				setpixel(&scr[L510], &Pix_skin);
+				setpixel(&scr[L506], &Pix_off);
+			} else {
+				setpixel(&scr[L510], &Pix_off);
+				setpixel(&scr[L506], &Pix_skin);
+			}
+			break;
+		case 3: /* bottom right */
+			setpixel(&scr[L601], shirt);
+			setpixel(&scr[L602], shirt);
+			setpixel(&scr[L603], shirt);
+			setpixel(&scr[L536], pants);
+			setpixel(&scr[L540], pants);
+			setpixel(&scr[L539], pants);
+			setpixel(&scr[L608], &Pix_skin); /* head */
+			setpixel(&scr[L537], &Pix_skin); /* left foot */
+			setpixel(&scr[L538], &Pix_skin); /* right foot */
+			if (left) {
+				setpixel(&scr[L534], &Pix_skin);
+				setpixel(&scr[L535], &Pix_off);
+			} else {
+				setpixel(&scr[L534], &Pix_off);
+				setpixel(&scr[L535], &Pix_skin);
+			}
+			if (right) {
+				setpixel(&scr[L605], &Pix_skin);
+				setpixel(&scr[L604], &Pix_off);
+			} else {
+				setpixel(&scr[L605], &Pix_off);
+				setpixel(&scr[L604], &Pix_skin);
+			}
+			break;
+	}
 }
