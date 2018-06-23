@@ -19,6 +19,14 @@ extern "C" int _write (int fd, char *ptr, int len);
 Pixel screen[NUMLEDS];
 
 #define TIME_WAVE (HZ/2)
+#define TIME_FRISBEE_COLOR (HZ/20)
+#define TIME_FRISBEE_MOVE (HZ/2)
+
+#define TIME_NEVER 0xffffffffffffffff
+
+uint64_t T1; /* timer for wave animation */
+uint64_t T2; /* timer for frisbee color animation */
+uint64_t T3; /* timer for frisbee movement animation */
 
 int _write (int fd, char *ptr, int len)
 {
@@ -96,6 +104,10 @@ void cmd_led(char *s);
 void cmd_wave(char *s);
 void cmd_waveanim(char *s);
 void cmd_person(char *s);
+void cmd_newfrisbee(char *s);
+void cmd_frisbeeanim(char *s);
+void cmd_startanim(char *s);
+void cmd_stopanim(char *s);
 
 /* handle debug console commands */
 void debugcommand(char *s)
@@ -105,9 +117,13 @@ void debugcommand(char *s)
 	para = parse_word(s);
 	printf("\r\n");
 	if (!strcmp(s, "led")) cmd_led(para);
-	if (!strcmp(s, "wave")) cmd_wave(para);
-	if (!strcmp(s, "waveanim")) cmd_waveanim(para);
-	if (!strcmp(s, "person")) cmd_person(para);
+	else if (!strcmp(s, "wave")) cmd_wave(para);
+	else if (!strcmp(s, "waveanim")) cmd_waveanim(para);
+	else if (!strcmp(s, "person")) cmd_person(para);
+	else if (!strcmp(s, "newfrisbee")) cmd_newfrisbee(para);
+	else if (!strcmp(s, "frisbeeanim")) cmd_frisbeeanim(para);
+	else if (!strcmp(s, "startanim")) cmd_startanim(para);
+	else if (!strcmp(s, "stopanim")) cmd_stopanim(para);
 	else printf("ERROR: unknown command\r\n");
 }
 
@@ -198,11 +214,56 @@ void cmd_person(char *s)
 	rgbled_vsync();
 }
 
+/* newfrisbee <p> */
+void cmd_newfrisbee(char *s)
+{
+	uint8_t person;
+
+	person = strtol(s, NULL, 0);
+	printf("%d will catch from %d\r\n", animate_newfrisbee(screen, person), person);
+	if (rgbled_update(screen, NUMLEDS)) printf("screen update failed cmd_newfrisbee\r\n");
+	rgbled_vsync();
+}
+
+/* frisbeeanim */
+void cmd_frisbeeanim(char *s)
+{
+	uint8_t oldpos;
+
+	oldpos = anim_fbeepos;
+	if (animate_frisbee(screen)) {
+		if (rgbled_update(screen, NUMLEDS)) printf("screen update failed cmd_frisbeeanim\r\n");
+		rgbled_vsync();
+	}
+	if (oldpos == anim_fbeepos) printf("END OF ANIMATION\r\n");
+}
+
+/* startanim <anim> */
+void cmd_startanim(char *s)
+{
+	int anim;
+
+	anim = strtol(s, NULL, 0);
+	if (1 == anim) T1 = systicktimer_time();
+	if (2 == anim) T2 = systicktimer_time();
+	if (3 == anim) T3 = systicktimer_time();
+}
+
+/* stopanim <anim> */
+void cmd_stopanim(char *s)
+{
+	int anim;
+
+	anim = strtol(s, NULL, 0);
+	if (1 == anim) T1 = TIME_NEVER;
+	if (2 == anim) T2 = TIME_NEVER;
+	if (3 == anim) T3 = TIME_NEVER;
+}
+
 int main(void)
 {
 	int i, j, c, p;
 	char inputbuf[80];
-	uint64_t t1; /* timeout for anim */
 
 	fullspeed();
 
@@ -241,6 +302,24 @@ int main(void)
 	setwave(screen, 5, &Pix_sand);
 	setwave(screen, 6, &Pix_sand);
 
+	//FIXME: randomize colors
+	{
+		Pixel pix1, pix2;
+		pix1.red = 255; pix1.green = 0; pix1.blue = 0;
+		pix2.red = 0; pix2.green = 255; pix2.blue = 0;
+		setperson(screen, 0, &pix1, &pix2, 1, 0);
+		pix1.red = 255; pix1.green = 20; pix1.blue = 147;
+		pix2.red = 255; pix2.green = 127; pix2.blue = 0;
+		setperson(screen, 1, &pix1, &pix2, 1, 0);
+		pix1.red = 0; pix1.green = 255; pix1.blue = 255;
+		pix2.red = 0; pix2.green = 0; pix2.blue = 255;
+		setperson(screen, 2, &pix1, &pix2, 0, 0);
+		pix1.red = 255; pix1.green = 0; pix1.blue = 255;
+		pix2.red = 255; pix2.green = 255; pix2.blue = 0;
+		setperson(screen, 3, &pix1, &pix2, 0, 0);
+	}
+	printf("Clothes %d\r\n", sizeof(Clothes));
+
 	if (rgbled_update(screen, NUMLEDS)) printf("Test1 failed\r\n");
 	rgbled_vsync();
 
@@ -252,7 +331,9 @@ int main(void)
 	p = 0;
 	printf("LED> ");
 	fflush(stdout);
-	t1 = systicktimer_time() + TIME_WAVE;
+	T1 = systicktimer_time() + TIME_WAVE;
+	T2 = systicktimer_time() + TIME_FRISBEE_COLOR;
+	T3 = systicktimer_time() + TIME_FRISBEE_MOVE;
 	while (1) {
 		c = uart_getc(USART1);
 		if (c > 0) {
@@ -278,11 +359,34 @@ int main(void)
 			}
 		}
 		fflush(stdout);
-		if (systicktimer_time() > t1) {
-			t1 = systicktimer_time() + TIME_WAVE;
+		/* time for wave animation */
+		if (systicktimer_time() > T1) {
+			T1 = systicktimer_time() + TIME_WAVE;
 			animate_wave(screen);
-			if (rgbled_update(screen, NUMLEDS)) printf("screen update failed\r\n");
+			if (rgbled_update(screen, NUMLEDS)) printf("screen update failed wave anim\r\n");
 			rgbled_vsync();
+		}
+		/* time for frisbee color animation */
+		if (systicktimer_time() > T2) {
+			Pixel pix;
+
+			T2 = systicktimer_time() + TIME_FRISBEE_COLOR;
+			pix.red = (rand() & 0x0f) << 4;
+			pix.green = (rand() & 0x0f) << 4;
+			pix.blue = (rand() & 0x0f) << 4;
+			if (255 != anim_fbeepos) {
+				setpixel(&screen[anim_fbeepos], &pix);
+			}
+			if (rgbled_update(screen, NUMLEDS)) printf("screen update failed frisbee color\r\n");
+			rgbled_vsync();
+		}
+		/* time for frisbee movement animation */
+		if (systicktimer_time() > T3) {
+			T3 = systicktimer_time() + TIME_FRISBEE_MOVE;
+			if (animate_frisbee(screen)) {
+				if (rgbled_update(screen, NUMLEDS)) printf("screen update failed frisbee animation\r\n");
+				rgbled_vsync();
+			}
 		}
 	}
 

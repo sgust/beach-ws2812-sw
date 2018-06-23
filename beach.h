@@ -185,11 +185,18 @@ extern const Pixel Pix_water;
 extern const Pixel Pix_water2;
 extern const Pixel Pix_skin;
 
+/* Colors for clothes */
+#define NUM_CLOTHES 10
+extern const Pixel Clothes[NUM_CLOTHES];
+
 /* animation control */
 extern int anim_wave_state;
+extern uint8_t anim_fbeepos;
 
 void setpixel(Pixel *scr, const Pixel *col);
 void setwave(Pixel *scr, int w, const Pixel *col);
 void animate_wave(Pixel *scr);
 void setperson(Pixel *scr, int p, Pixel *shirt, Pixel *pants, int left, int right);
+uint8_t animate_newfrisbee(Pixel *scr, uint8_t p);
+int animate_frisbee(Pixel *scr);
 #endif
