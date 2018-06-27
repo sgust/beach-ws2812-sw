@@ -216,7 +216,8 @@ void cmd_newfrisbee(char *s)
 	uint8_t person;
 
 	person = strtol(s, NULL, 0);
-	printf("%d will catch from %d\r\n", animate_newfrisbee(screen, person), person);
+	anim_fbeepers = animate_newfrisbee(screen, person);
+	printf("%d will catch from %d\r\n", anim_fbeepers, person);
 	rgbled_update(screen, NUMLEDS);
 }
 
@@ -297,23 +298,24 @@ int main(void)
 	setwave(screen, 5, &Pix_sand);
 	setwave(screen, 6, &Pix_sand);
 
-	//FIXME: randomize colors
-	{
-		Pixel pix1, pix2;
-		pix1.red = 255; pix1.green = 0; pix1.blue = 0;
-		pix2.red = 0; pix2.green = 255; pix2.blue = 0;
-		setperson(screen, 0, &pix1, &pix2, 1, 0);
-		pix1.red = 255; pix1.green = 20; pix1.blue = 147;
-		pix2.red = 255; pix2.green = 127; pix2.blue = 0;
-		setperson(screen, 1, &pix1, &pix2, 1, 0);
-		pix1.red = 0; pix1.green = 255; pix1.blue = 255;
-		pix2.red = 0; pix2.green = 0; pix2.blue = 255;
-		setperson(screen, 2, &pix1, &pix2, 0, 0);
-		pix1.red = 255; pix1.green = 0; pix1.blue = 255;
-		pix2.red = 255; pix2.green = 255; pix2.blue = 0;
-		setperson(screen, 3, &pix1, &pix2, 0, 0);
+	/* person 0 holding frisbee in left hand up */
+	anim_fbeepos = L404;
+	anim_fbeepers = 0;
+
+	for(i = 0; i < 4; i++) {
+		Pixel *pix1, *pix2;
+
+		pix1 = pix2 = &Clothes[rand()%(sizeof(Clothes)/sizeof(Pixel))];
+		while (pix1 == pix2) {
+			pix2 = &Clothes[rand()%(sizeof(Clothes)/sizeof(Pixel))];
+		}
+		/* person 0 left hand up (holds initial frisbee) */
+		if (0 == i) {
+			setperson(screen, i, pix1, pix2, 1, rand()%2);
+		} else {
+			setperson(screen, i, pix1, pix2, rand()%2, rand()%2);
+		}
 	}
-	printf("Clothes %d\r\n", sizeof(Clothes));
 
 	rgbled_update(screen, NUMLEDS);
 
@@ -370,7 +372,11 @@ int main(void)
 		/* time for frisbee movement animation */
 		if (systicktimer_time() > T3) {
 			T3 = systicktimer_time() + TIME_FRISBEE_MOVE;
-			if (animate_frisbee(screen)) {
+			if (NULL == anim_fbeepath) {
+				anim_fbeepers = animate_newfrisbee(screen, anim_fbeepers);
+				rgbled_update(screen, NUMLEDS);
+			}
+			else if (animate_frisbee(screen)) {
 				rgbled_update(screen, NUMLEDS);
 			}
 		}

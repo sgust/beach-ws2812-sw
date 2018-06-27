@@ -301,9 +301,10 @@ const uint16_t path_2_0_1[] = { PERS_2 | HAND_R | HAND_B | L506, PERS_2 | HAND_R
 const uint16_t path_2_0_2[] = { PERS_2 | HAND_L | HAND_B | L422, PERS_2 | HAND_L | HAND_T | L423, PERS_X | L424, PERS_0 | HAND_L | HAND_B | L425, L426, L427, L428, 255 };
 const uint16_t path_2_mis[] = { PERS_X | L410, L308, L232, L223, L211, 255 };
 
-uint8_t anim_fbeepos = 255;
-const uint16_t *anim_fbeepath;
-uint8_t anim_fbeeidx = 0;
+uint8_t anim_fbeepos = 255;	/* current frisbeeposition */
+const uint16_t *anim_fbeepath;	/* current frisbeepath */
+uint8_t anim_fbeeidx = 0;	/* frisbee position in path */
+uint8_t anim_fbeepers = 0;	/* person holding the frisbee */
 
 /* prepare to throw a frisbee from person p, return catching person */
 uint8_t animate_newfrisbee(Pixel *scr, uint8_t p)

@@ -192,6 +192,8 @@ extern const Pixel Clothes[NUM_CLOTHES];
 /* animation control */
 extern int anim_wave_state;
 extern uint8_t anim_fbeepos;
+extern const uint16_t *anim_fbeepath;
+extern uint8_t anim_fbeepers;
 
 void setpixel(Pixel *scr, const Pixel *col);
 void setwave(Pixel *scr, int w, const Pixel *col);
