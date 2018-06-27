@@ -10,7 +10,6 @@ typedef struct {
 } Pixel;
 
 void rgbled_init(void);
-void rgbled_vsync(void);
-int rgbled_update(Pixel *scr, int len);
+void rgbled_update(Pixel *scr, int len);
 
 #endif

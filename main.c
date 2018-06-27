@@ -145,8 +145,7 @@ void cmd_led(char *s)
 	screen[led].red = strtol(r, NULL, 0);
 	screen[led].green = strtol(g, NULL, 0);
 	screen[led].blue = strtol(b, NULL, 0);
-	if (rgbled_update(screen, NUMLEDS)) printf("screen update failed\r\n");
-	rgbled_vsync();
+	rgbled_update(screen, NUMLEDS);
 }
 
 /* wave <num> <r> <g> <b> */
@@ -169,8 +168,7 @@ void cmd_wave(char *s)
 	pix.green = strtol(g, NULL, 0);
 	pix.blue = strtol(b, NULL, 0);
 	setwave(screen, wave, &pix);
-	if (rgbled_update(screen, NUMLEDS)) printf("screen update failed\r\n");
-	rgbled_vsync();
+	rgbled_update(screen, NUMLEDS);
 }
 
 /* waveanim <step> */
@@ -181,8 +179,7 @@ void cmd_waveanim(char *s)
 	i = strtol(s, NULL, 0);
 	if ((i >= 0) && (i <= 14)) anim_wave_state = i;
 	animate_wave(screen);
-	if (rgbled_update(screen, NUMLEDS)) printf("screen update failed\r\n");
-	rgbled_vsync();
+	rgbled_update(screen, NUMLEDS);
 }
 
 /* person <p> <shirt> <pants> <left> <right> */
@@ -210,8 +207,7 @@ void cmd_person(char *s)
 	left = strtol(lh, NULL, 0);
 	right = strtol(rh, NULL, 0);
 	setperson(screen, person, &shirt, &pants, left, right);
-	if (rgbled_update(screen, NUMLEDS)) printf("screen update failed\r\n");
-	rgbled_vsync();
+	rgbled_update(screen, NUMLEDS);
 }
 
 /* newfrisbee <p> */
@@ -221,8 +217,7 @@ void cmd_newfrisbee(char *s)
 
 	person = strtol(s, NULL, 0);
 	printf("%d will catch from %d\r\n", animate_newfrisbee(screen, person), person);
-	if (rgbled_update(screen, NUMLEDS)) printf("screen update failed cmd_newfrisbee\r\n");
-	rgbled_vsync();
+	rgbled_update(screen, NUMLEDS);
 }
 
 /* frisbeeanim */
@@ -232,8 +227,7 @@ void cmd_frisbeeanim(char *s)
 
 	oldpos = anim_fbeepos;
 	if (animate_frisbee(screen)) {
-		if (rgbled_update(screen, NUMLEDS)) printf("screen update failed cmd_frisbeeanim\r\n");
-		rgbled_vsync();
+		rgbled_update(screen, NUMLEDS);
 	}
 	if (oldpos == anim_fbeepos) printf("END OF ANIMATION\r\n");
 }
@@ -290,8 +284,9 @@ int main(void)
 	for(i = 0; i < NUMLEDS; i++) {
 		screen[i].red = screen[i].green = screen[i].blue = 0;
 	}
-	if (rgbled_update(screen, NUMLEDS)) printf("CLS failed");
-	rgbled_vsync();
+	rgbled_update(screen, NUMLEDS);
+
+	systicktimer_sleepms(1000);
 
 	/* initial animation */
 	setwave(screen, 0, &Pix_sand);
@@ -320,13 +315,7 @@ int main(void)
 	}
 	printf("Clothes %d\r\n", sizeof(Clothes));
 
-	if (rgbled_update(screen, NUMLEDS)) printf("Test1 failed\r\n");
-	rgbled_vsync();
-
-	systicktimer_sleepms(1000);
-
-	if (rgbled_update(screen, NUMLEDS)) printf("Test2 failed\r\n");
-	rgbled_vsync();
+	rgbled_update(screen, NUMLEDS);
 
 	p = 0;
 	printf("LED> ");
@@ -363,8 +352,7 @@ int main(void)
 		if (systicktimer_time() > T1) {
 			T1 = systicktimer_time() + TIME_WAVE;
 			animate_wave(screen);
-			if (rgbled_update(screen, NUMLEDS)) printf("screen update failed wave anim\r\n");
-			rgbled_vsync();
+			rgbled_update(screen, NUMLEDS);
 		}
 		/* time for frisbee color animation */
 		if (systicktimer_time() > T2) {
@@ -377,15 +365,13 @@ int main(void)
 			if (255 != anim_fbeepos) {
 				setpixel(&screen[anim_fbeepos], &pix);
 			}
-			if (rgbled_update(screen, NUMLEDS)) printf("screen update failed frisbee color\r\n");
-			rgbled_vsync();
+			rgbled_update(screen, NUMLEDS);
 		}
 		/* time for frisbee movement animation */
 		if (systicktimer_time() > T3) {
 			T3 = systicktimer_time() + TIME_FRISBEE_MOVE;
 			if (animate_frisbee(screen)) {
-				if (rgbled_update(screen, NUMLEDS)) printf("screen update failed frisbee animation\r\n");
-				rgbled_vsync();
+				rgbled_update(screen, NUMLEDS);
 			}
 		}
 	}
@@ -411,7 +397,6 @@ int main(void)
 		screen[(j+3)%NUMLEDS].blue = 255;
 		if (++j >= NUMLEDS) j = 0;
 		rgbled_update(screen, NUMLEDS);
-		rgbled_vsync();
 		systicktimer_sleepms(10);
 	}
 

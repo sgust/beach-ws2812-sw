@@ -406,5 +406,4 @@ int animate_frisbee(Pixel *scr)
  *
  * move arms randomly (not in frisbee path)
  * brightness control
- * remove interrupts on RGB led data transfer completely
  */

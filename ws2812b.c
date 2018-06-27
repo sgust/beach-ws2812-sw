@@ -6,14 +6,6 @@
 #include "common.h"
 #include "ws2812b.h"
 
-static Pixel *screen = NULL;
-static volatile uint8_t screen_update = 0;
-static unsigned int screen_size = 0;
-static int8_t bit = 0;		// need signed for countdown to 0!
-static uint8_t reset = 0;
-static uint8_t pixel = 0;
-static uint8_t color = 0;
-
 // initialise SPI
 void rgbled_init(void) {
 	// TIMER PWM on PA1
@@ -32,62 +24,28 @@ void rgbled_init(void) {
 	TIM2->CR1 |= TIM_CR1_ARPE;
 	TIM2->EGR |= TIM_EGR_UG;
 	TIM2->CR1 |= TIM_CR1_CEN;
-	// prepare interrupt
-	NVIC_SetPriority(TIM2_IRQn, 0);
-	NVIC_EnableIRQ(TIM2_IRQn);
-	// init data
-	screen_update = 0;
-	screen_size = 0;
-	reset = 0;
-	pixel = 0;
-	color = 0;
-	bit = 7;
 }
 
-// wait until all data is sent
-void rgbled_vsync(void)
+void rgbled_update(Pixel *scr, int len)
 {
-	while (screen_update) {}
-}
+	int i;
+	int8_t bit = 0;		// need signed for countdown to 0!
 
-int rgbled_update(Pixel *scr, int len)
-{
-	if (screen_update) return -1; // still sending data, refuse new data
-	screen_size = len;
-	screen_update = 1;
-	// copy screen data reference
-	screen = scr;
+	__disable_irq();
 	// >50us needed, doing 100us
-	reset = 80;
 	TIM2->CCR2 = 0;
-	// enable IRQ
-	TIM2->DIER = TIM_DIER_UIE;
-	NVIC_EnableIRQ(TIM2_IRQn);
-	return 0;
-}
-
-// interrupt handler, used to update the bits
-//FIXME, NEW IDEA: use dma from buffer, refill buffer by irq
-void __attribute__ ((interrupt)) TIM2_IRQHandler(void)
-{
-	unsigned int i;
-
-	TIM2->SR &= ~(TIM_SR_UIF);
-	// wait for end of reset signal
-	if (reset) {
-		reset--;
-		return;
+	for (i = 0; i < 80; i++) {
+		while (!(TIM2->SR & TIM_SR_UIF)) {}
+		TIM2->SR &= ~(TIM_SR_UIF);
+		TIM2->CCR2 = 0;
 	}
 	// we need to send a bit every 1.25µs, the irq has too much latency
 	// to be called for every bit, so we send all bits in one call
-	// disable IRQ
-	TIM2->DIER &= ~TIM_DIER_UIE;
-	NVIC_DisableIRQ(TIM2_IRQn);
-	for (i = 0; i < screen_size; i++) {
+	for (i = 0; i < len; i++) {
 		for(bit = 7; bit >= 0; bit--) {
 			// wait for end of previous bit
 			while (!(TIM2->SR & TIM_SR_UIF)) {}
-			if (screen[i].green & (1 << bit))
+			if (scr[i].green & (1 << bit))
 				TIM2->CCR2 = 57;
 			else
 				TIM2->CCR2 = 28;
@@ -97,7 +55,7 @@ void __attribute__ ((interrupt)) TIM2_IRQHandler(void)
 		for(bit = 7; bit >= 0; bit--) {
 			// wait for end of previous bit
 			while (!(TIM2->SR & TIM_SR_UIF)) {}
-			if (screen[i].red & (1 << bit))
+			if (scr[i].red & (1 << bit))
 				TIM2->CCR2 = 57;
 			else
 				TIM2->CCR2 = 28;
@@ -107,7 +65,7 @@ void __attribute__ ((interrupt)) TIM2_IRQHandler(void)
 		for(bit = 7; bit >= 0; bit--) {
 			// wait for end of previous bit
 			while (!(TIM2->SR & TIM_SR_UIF)) {}
-			if (screen[i].blue & (1 << bit))
+			if (scr[i].blue & (1 << bit))
 				TIM2->CCR2 = 57;
 			else
 				TIM2->CCR2 = 28;
@@ -119,6 +77,5 @@ void __attribute__ ((interrupt)) TIM2_IRQHandler(void)
 	while (!(TIM2->SR & TIM_SR_UIF)) {}
 	// finished: set data low
 	TIM2->CCR2 = 0;
-	screen_update = 0;
-	return;
+	__enable_irq();
 }
