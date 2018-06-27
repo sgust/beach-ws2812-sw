@@ -108,6 +108,7 @@ void cmd_newfrisbee(char *s);
 void cmd_frisbeeanim(char *s);
 void cmd_startanim(char *s);
 void cmd_stopanim(char *s);
+void cmd_test(char *s);
 
 /* handle debug console commands */
 void debugcommand(char *s)
@@ -124,6 +125,7 @@ void debugcommand(char *s)
 	else if (!strcmp(s, "frisbeeanim")) cmd_frisbeeanim(para);
 	else if (!strcmp(s, "startanim")) cmd_startanim(para);
 	else if (!strcmp(s, "stopanim")) cmd_stopanim(para);
+	else if (!strcmp(s, "test")) cmd_test(para);
 	else printf("ERROR: unknown command\r\n");
 }
 
@@ -253,6 +255,23 @@ void cmd_stopanim(char *s)
 	if (1 == anim) T1 = TIME_NEVER;
 	if (2 == anim) T2 = TIME_NEVER;
 	if (3 == anim) T3 = TIME_NEVER;
+}
+
+/* test <r> <g> <b> */
+void cmd_test(char *r)
+{
+	char *g, *b;
+	int i;
+
+	g = parse_word(r);
+	b = parse_word(g);
+
+	for(i = 0; i < NUMLEDS; i++) {
+		screen[i].red = strtol(r, NULL, 0);
+		screen[i].green = strtol(g, NULL, 0);
+		screen[i].blue = strtol(b, NULL, 0);
+	}
+	rgbled_update(screen, NUMLEDS);
 }
 
 int main(void)
