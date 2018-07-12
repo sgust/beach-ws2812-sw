@@ -295,10 +295,13 @@ void setperson(Pixel *scr, int p, Pixel *shirt, Pixel *pants, int left, int righ
 #define PERS_X 0x2000 /* redraw marker */
 
 const uint16_t path_0_1_1[] = { PERS_0 | HAND_R | HAND_B | L516, PERS_0 | HAND_R | HAND_T | L517, PERS_X | PERS_1 | HAND_L | HAND_T | L518, 255 };
+const uint16_t path_0_1_2[] = { PERS_0 | HAND_L | HAND_B | L428, PERS_0 | HAND_L | HAND_T | L404, PERS_X | L401, L432, PERS_1 | HAND_L | HAND_T | L433, L434, PERS_1 | HAND_L | HAND_T | L518, PERS_1 | HAND_L | HAND_B | L526, 255 };
 const uint16_t path_0_2_1[] = { PERS_0 | HAND_R | HAND_T | L517, PERS_0 | HAND_R | HAND_B | L516, PERS_X | L514, PERS_2 | HAND_R | HAND_T | L513, L511, L510, 255 };
 const uint16_t path_0_2_2[] = { PERS_0 | HAND_L | HAND_T | L404, PERS_0 | HAND_L | HAND_B | L428, PERS_X | L427, PERS_2 | HAND_L | HAND_T | L426, L425, L424, L423, 255 };
 const uint16_t path_0_mis[] = { PERS_X | L337, L302, L237, L218, L215, L204, 255 };
 const uint16_t path_1_0_1[] = { PERS_1 | HAND_L | HAND_T | L518, PERS_0 | HAND_R | HAND_T | L517, PERS_X | PERS_0 | HAND_R | HAND_B | L516, 255 };
+const uint16_t path_1_0_2[] = { PERS_1 | HAND_L | HAND_B | L526, PERS_1 | HAND_L | HAND_T | L518, PERS_X | L434, L433, PERS_0 | HAND_L | HAND_T | L432, L401, PERS_0 | HAND_L | HAND_T | L404, PERS_0 | HAND_L | HAND_B | L428, 255 };
+const uint16_t path_1_mis[] = { PERS_1 | HAND_L | HAND_B | L526, PERS_1 | HAND_L | HAND_T | L518, PERS_X | L434, L433, L432, L401, L337, L302, L237, L218, L215, L204, 255 };
 const uint16_t path_2_0_1[] = { PERS_2 | HAND_R | HAND_B | L506, PERS_2 | HAND_R | HAND_T | L510, PERS_X | L511, PERS_0 | HAND_R | HAND_T | L513, L514, L516, L517, 255 };
 const uint16_t path_2_0_2[] = { PERS_2 | HAND_L | HAND_B | L422, PERS_2 | HAND_L | HAND_T | L423, PERS_X | L424, PERS_0 | HAND_L | HAND_B | L425, L426, L427, L428, 255 };
 const uint16_t path_2_mis[] = { PERS_X | L410, L308, L232, L223, L211, 255 };
@@ -315,14 +318,14 @@ uint8_t animate_newfrisbee(Pixel *scr, uint8_t p)
 	int r;
 
 	anim_fbeepath = NULL;
+#if 1 //DEBUGGING HELP to disable frisbee decision code for path creation/testing
 	switch(p) {
 		case 0:
 			if (0 == (rand() % PROB_MISS)) {
 				anim_fbeepath = path_0_mis;
 				catcher = 4;
 			} else {
-				//FIXME: different catchers
-				r = rand() % 3;
+				r = rand() % 4;
 				if (r == 0) {
 					anim_fbeepath = path_0_2_1;
 					catcher = 2;
@@ -332,12 +335,26 @@ uint8_t animate_newfrisbee(Pixel *scr, uint8_t p)
 				} else if (r == 2) {
 					anim_fbeepath = path_0_1_1;
 					catcher = 1;
+				} else if (r == 3) {
+					anim_fbeepath = path_0_1_2;
+					catcher = 1;
 				}
 			}
 			break;
 		case 1:
-			anim_fbeepath = path_1_0_1;
-			catcher = 0;
+			if (0 == (rand() % PROB_MISS)) {
+				anim_fbeepath = path_1_mis;
+				catcher = 4;
+			} else {
+				r = rand() % 2;
+				if (r == 0) {
+					anim_fbeepath = path_1_0_1;
+					catcher = 0;
+				} else if (r == 1) {
+					anim_fbeepath = path_1_0_2;
+					catcher = 0;
+				}
+			}
 			break;
 		case 2:
 			if (0 == (rand() % PROB_MISS)) {
@@ -356,6 +373,7 @@ uint8_t animate_newfrisbee(Pixel *scr, uint8_t p)
 			}
 			break;
 	}
+#endif
 	if (anim_fbeepath) {
 		anim_fbeeidx = 0;
 		anim_fbeepos = 255; /* marker for fresh frisbee */
