@@ -20,7 +20,7 @@ Pixel screen[NUMLEDS];
 
 #define TIME_WAVE (HZ/2)
 #define TIME_FRISBEE_COLOR (HZ/20)
-#define TIME_FRISBEE_MOVE (HZ/2)
+#define TIME_FRISBEE_MOVE (HZ/3)
 
 #define TIME_NEVER 0xffffffffffffffff
 
