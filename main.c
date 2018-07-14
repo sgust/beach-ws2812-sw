@@ -109,6 +109,7 @@ void cmd_frisbeeanim(char *s);
 void cmd_startanim(char *s);
 void cmd_stopanim(char *s);
 void cmd_test(char *s);
+void cmd_state(char *s);
 
 /* handle debug console commands */
 void debugcommand(char *s)
@@ -126,6 +127,7 @@ void debugcommand(char *s)
 	else if (!strcmp(s, "startanim")) cmd_startanim(para);
 	else if (!strcmp(s, "stopanim")) cmd_stopanim(para);
 	else if (!strcmp(s, "test")) cmd_test(para);
+	else if (!strcmp(s, "state")) cmd_state(para);
 	else printf("ERROR: unknown command\r\n");
 }
 
@@ -274,6 +276,15 @@ void cmd_test(char *r)
 	rgbled_update(screen, NUMLEDS);
 }
 
+/* state */
+void cmd_state(char *s)
+{
+	printf("anim_fbeepers %d\r\n", anim_fbeepers);
+	printf("anim_fbeepath %08x\r\n", anim_fbeepath);
+	printf("anim_fbeepos %d\r\n", anim_fbeepos);
+	printf("anim_wave_state %d\r\n", anim_wave_state);
+}
+
 int main(void)
 {
 	int i, j, c, p;
@@ -374,6 +385,31 @@ int main(void)
 			timer_wave = systicktimer_time() + TIME_WAVE;
 			animate_wave(screen);
 			rgbled_update(screen, NUMLEDS);
+			/* trigger return of missed frisbees */
+			if ((PERSON_LOST == anim_fbeepers) && (NULL == anim_fbeepath)) {
+				if ((L204 == anim_fbeepos) && (3 == anim_wave_state)) {
+					anim_fbeepers = animate_newfrisbee(screen, PERSON_BACK_T);
+				}
+				if ((L211 == anim_fbeepos) && (4 == anim_wave_state)) {
+					anim_fbeepers = animate_newfrisbee(screen, PERSON_BACK_M);
+				}
+			}
+			/* start new frisbee after return finished */
+			if ((PERSON_BACK_T == anim_fbeepers) && (NULL == anim_fbeepath)) {
+				anim_fbeepers = animate_newfrisbee(screen, 0);
+			}
+			if ((PERSON_BACK_M == anim_fbeepers) && (NULL == anim_fbeepath)) {
+				anim_fbeepers = animate_newfrisbee(screen, 2);
+			}
+			if ((PERSON_BACK_B == anim_fbeepers) && (NULL == anim_fbeepath)) {
+				anim_fbeepers = animate_newfrisbee(screen, 2);
+			}
+			/* return frisbee animation time-locked to wave */
+			if ((PERSON_BACK_T == anim_fbeepers) || (PERSON_BACK_M == anim_fbeepers) || (PERSON_BACK_B == anim_fbeepers)) {
+				if (animate_frisbee(screen)) {
+					rgbled_update(screen, NUMLEDS);
+				}
+			}
 		}
 		/* time for frisbee color animation */
 		if (systicktimer_time() > timer_color) {
@@ -389,7 +425,7 @@ int main(void)
 			rgbled_update(screen, NUMLEDS);
 		}
 		/* time for frisbee movement animation */
-		if (systicktimer_time() > timer_fbee) {
+		if ((systicktimer_time() > timer_fbee) && (anim_fbeepers <= 4)) {
 			timer_fbee = systicktimer_time() + TIME_FRISBEE_MOVE;
 			if (NULL == anim_fbeepath) {
 				anim_fbeepers = animate_newfrisbee(screen, anim_fbeepers);

@@ -178,6 +178,12 @@
 #define L612 171
 #define L613 172
 
+/* special person values */
+#define PERSON_LOST	4 /* frisbee is lost */
+#define PERSON_BACK_T	5 /* frisbee comes back to person 0 */
+#define PERSON_BACK_M	6 /* frisbee comes back to person 2 */
+#define PERSON_BACK_B	7 /* frisbee comes back to person 2 */
+
 /* some colors */
 extern const Pixel Pix_off;
 extern const Pixel Pix_sand;
