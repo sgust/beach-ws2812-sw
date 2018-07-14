@@ -24,9 +24,9 @@ Pixel screen[NUMLEDS];
 
 #define TIME_NEVER 0xffffffffffffffff
 
-uint64_t T1; /* timer for wave animation */
-uint64_t T2; /* timer for frisbee color animation */
-uint64_t T3; /* timer for frisbee movement animation */
+uint64_t timer_wave; /* timer for wave animation */
+uint64_t timer_color; /* timer for frisbee color animation */
+uint64_t timer_fbee; /* timer for frisbee movement animation */
 
 int _write (int fd, char *ptr, int len)
 {
@@ -241,9 +241,9 @@ void cmd_startanim(char *s)
 	int anim;
 
 	anim = strtol(s, NULL, 0);
-	if (1 == anim) T1 = systicktimer_time();
-	if (2 == anim) T2 = systicktimer_time();
-	if (3 == anim) T3 = systicktimer_time();
+	if (1 == anim) timer_wave = systicktimer_time();
+	if (2 == anim) timer_color = systicktimer_time();
+	if (3 == anim) timer_fbee = systicktimer_time();
 }
 
 /* stopanim <anim> */
@@ -252,9 +252,9 @@ void cmd_stopanim(char *s)
 	int anim;
 
 	anim = strtol(s, NULL, 0);
-	if (1 == anim) T1 = TIME_NEVER;
-	if (2 == anim) T2 = TIME_NEVER;
-	if (3 == anim) T3 = TIME_NEVER;
+	if (1 == anim) timer_wave = TIME_NEVER;
+	if (2 == anim) timer_color = TIME_NEVER;
+	if (3 == anim) timer_fbee = TIME_NEVER;
 }
 
 /* test <r> <g> <b> */
@@ -341,9 +341,9 @@ int main(void)
 	p = 0;
 	printf("LED> ");
 	fflush(stdout);
-	T1 = systicktimer_time() + TIME_WAVE;
-	T2 = systicktimer_time() + TIME_FRISBEE_COLOR;
-	T3 = systicktimer_time() + TIME_FRISBEE_MOVE;
+	timer_wave = systicktimer_time() + TIME_WAVE;
+	timer_color = systicktimer_time() + TIME_FRISBEE_COLOR;
+	timer_fbee = systicktimer_time() + TIME_FRISBEE_MOVE;
 	while (1) {
 		c = uart_getc(USART1);
 		if (c > 0) {
@@ -370,16 +370,16 @@ int main(void)
 		}
 		fflush(stdout);
 		/* time for wave animation */
-		if (systicktimer_time() > T1) {
-			T1 = systicktimer_time() + TIME_WAVE;
+		if (systicktimer_time() > timer_wave) {
+			timer_wave = systicktimer_time() + TIME_WAVE;
 			animate_wave(screen);
 			rgbled_update(screen, NUMLEDS);
 		}
 		/* time for frisbee color animation */
-		if (systicktimer_time() > T2) {
+		if (systicktimer_time() > timer_color) {
 			Pixel pix;
 
-			T2 = systicktimer_time() + TIME_FRISBEE_COLOR;
+			timer_color = systicktimer_time() + TIME_FRISBEE_COLOR;
 			pix.red = (rand() & 0x0f) << 4;
 			pix.green = (rand() & 0x0f) << 4;
 			pix.blue = (rand() & 0x0f) << 4;
@@ -389,8 +389,8 @@ int main(void)
 			rgbled_update(screen, NUMLEDS);
 		}
 		/* time for frisbee movement animation */
-		if (systicktimer_time() > T3) {
-			T3 = systicktimer_time() + TIME_FRISBEE_MOVE;
+		if (systicktimer_time() > timer_fbee) {
+			timer_fbee = systicktimer_time() + TIME_FRISBEE_MOVE;
 			if (NULL == anim_fbeepath) {
 				anim_fbeepers = animate_newfrisbee(screen, anim_fbeepers);
 				rgbled_update(screen, NUMLEDS);
