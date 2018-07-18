@@ -298,6 +298,7 @@ const uint16_t path_0_1_1[] = { PERS_0 | HAND_R | HAND_B | L516, PERS_0 | HAND_R
 const uint16_t path_0_1_2[] = { PERS_0 | HAND_L | HAND_B | L428, PERS_0 | HAND_L | HAND_T | L404, PERS_X | L401, L432, PERS_1 | HAND_L | HAND_T | L433, L434, PERS_1 | HAND_L | HAND_T | L518, PERS_1 | HAND_L | HAND_B | L526, 255 };
 const uint16_t path_0_2_1[] = { PERS_0 | HAND_R | HAND_T | L517, PERS_0 | HAND_R | HAND_B | L516, PERS_X | L514, PERS_2 | HAND_R | HAND_T | L513, L511, L510, 255 };
 const uint16_t path_0_2_2[] = { PERS_0 | HAND_L | HAND_T | L404, PERS_0 | HAND_L | HAND_B | L428, PERS_X | L427, PERS_2 | HAND_L | HAND_T | L426, L425, L424, L423, 255 };
+const uint16_t path_0_3_1[] = { PERS_0 | HAND_R | HAND_T | L517, PERS_0 | HAND_R | HAND_B | L516, PERS_X | L529, L532, PERS_3 | HAND_R | HAND_T | L609, L607, PERS_3 | HAND_R | HAND_T | L605, 255 };
 const uint16_t path_0_mis[] = { PERS_X | L337, L302, L237, L218, L215, L204, 255 };
 const uint16_t path_1_0_1[] = { PERS_1 | HAND_L | HAND_T | L518, PERS_0 | HAND_R | HAND_T | L517, PERS_X | PERS_0 | HAND_R | HAND_B | L516, 255 };
 const uint16_t path_1_0_2[] = { PERS_1 | HAND_L | HAND_B | L526, PERS_1 | HAND_L | HAND_T | L518, PERS_X | L434, L433, PERS_0 | HAND_L | HAND_T | L432, L401, PERS_0 | HAND_L | HAND_T | L404, PERS_0 | HAND_L | HAND_B | L428, 255 };
@@ -307,6 +308,7 @@ const uint16_t path_1_mis[] = { PERS_1 | HAND_L | HAND_B | L526, PERS_1 | HAND_L
 const uint16_t path_2_0_1[] = { PERS_2 | HAND_R | HAND_B | L506, PERS_2 | HAND_R | HAND_T | L510, PERS_X | L511, PERS_0 | HAND_R | HAND_T | L513, L514, L516, L517, 255 };
 const uint16_t path_2_0_2[] = { PERS_2 | HAND_L | HAND_B | L422, PERS_2 | HAND_L | HAND_T | L423, PERS_X | L424, PERS_0 | HAND_L | HAND_B | L425, L426, L427, L428, 255 };
 const uint16_t path_2_mis[] = { PERS_X | L410, L308, L232, L223, L211, 255 };
+const uint16_t path_3_0_1[] = { PERS_3 | HAND_R | HAND_B | L604, PERS_3 | HAND_R | HAND_T | L605, PERS_X | L607, PERS_0 | HAND_R | HAND_B | L609, L532, L529, PERS_0 | HAND_R | HAND_B | L516, 255 };
 const uint16_t path_3_1_1[] = { PERS_3 | HAND_L | HAND_B | L535, PERS_3 | HAND_L | HAND_T | L534, PERS_X | L533, PERS_1 | HAND_L | HAND_B | L531, L527, PERS_1 | HAND_L | HAND_B | L526, 255 };
 const uint16_t path_3_1_2[] = { PERS_3 | HAND_R | HAND_B | L604, PERS_3 | HAND_R | HAND_T | L605, PERS_X | L606, PERS_1 | HAND_R | HAND_B | L610, L612, PERS_1 | HAND_R | HAND_B | L524, 255 };
 const uint16_t path_t_bck[] = { L204, L215, L218, PERS_0 | HAND_L | HAND_T | L237, L302, L337, PERS_0 | HAND_L | HAND_T | L404, 255 };
@@ -324,7 +326,6 @@ uint8_t animate_newfrisbee(Pixel *scr, uint8_t p)
 	int r;
 
 	anim_fbeepath = NULL;
-
 #if 1 //DEBUGGING HELP to disable frisbee decision code for path creation/testing
 	switch(p) {
 		case 0:
@@ -332,19 +333,22 @@ uint8_t animate_newfrisbee(Pixel *scr, uint8_t p)
 				anim_fbeepath = path_0_mis;
 				catcher = PERSON_LOST;
 			} else {
-				r = rand() % 4;
-				if (r == 0) {
+				r = rand() % 5;
+				if (0 == r) {
 					anim_fbeepath = path_0_2_1;
 					catcher = 2;
-				} else if (r == 1) {
+				} else if (1 == r) {
 					anim_fbeepath = path_0_2_2;
 					catcher = 2;
-				} else if (r == 2) {
+				} else if (2 == r) {
 					anim_fbeepath = path_0_1_1;
 					catcher = 1;
-				} else if (r == 3) {
+				} else if (3 == r) {
 					anim_fbeepath = path_0_1_2;
 					catcher = 1;
+				} else if (4 == r) {
+					anim_fbeepath = path_0_3_1;
+					catcher = 3;
 				}
 			}
 			break;
@@ -354,7 +358,7 @@ uint8_t animate_newfrisbee(Pixel *scr, uint8_t p)
 				catcher = PERSON_LOST;
 			} else {
 				r = rand() % 4;
-				if (r == 0) {
+				if (0 == r) {
 					anim_fbeepath = path_1_0_1;
 					catcher = 0;
 				} else if (1 == r) {
@@ -376,10 +380,10 @@ uint8_t animate_newfrisbee(Pixel *scr, uint8_t p)
 			} else {
 				//FIXME: different catchers
 				r = rand() % 2;
-				if (r == 0) {
+				if (0 == r) {
 					anim_fbeepath = path_2_0_1;
 					catcher = 0;
-				} else if (r == 1) {
+				} else if (1 == r) {
 					anim_fbeepath = path_2_0_2;
 					catcher = 0;
 				}
@@ -389,14 +393,16 @@ uint8_t animate_newfrisbee(Pixel *scr, uint8_t p)
 			if (0 == 1) {
 				//FIXME: miss
 			} else {
-				//FIXME: different catchers
-				r = rand() % 2;
-				if (r == 0) {
+				r = rand() % 3;
+				if (0 == r) {
 					anim_fbeepath = path_3_1_1;
 					catcher = 1;
-				} else if (r == 1) {
+				} else if (1 == r) {
 					anim_fbeepath = path_3_1_2;
 					catcher = 1;
+				} else if (2 == r) {
+					anim_fbeepath = path_3_0_1;
+					catcher = 0;
 				}
 			}
 			break;
