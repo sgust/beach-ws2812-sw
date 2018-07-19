@@ -393,6 +393,9 @@ int main(void)
 				if ((L211 == anim_fbeepos) && (4 == anim_wave_state)) {
 					anim_fbeepers = animate_newfrisbee(screen, PERSON_BACK_M);
 				}
+				if ((L224 == anim_fbeepos) && (5 == anim_wave_state)) {
+					anim_fbeepers = animate_newfrisbee(screen, PERSON_BACK_B);
+				}
 			}
 			/* start new frisbee after return finished */
 			if ((PERSON_BACK_T == anim_fbeepers) && (NULL == anim_fbeepath)) {

@@ -8,7 +8,7 @@
 #include "ws2812b.h"
 #include "beach.h"
 
-#define PROB_MISS 10 /* miss one out of 10 throws */
+#define PROB_MISS 16 /* miss one out of 16 throws */
 
 /* some colors */
 const Pixel Pix_off = { 0, 0, 0 };
@@ -307,12 +307,16 @@ const uint16_t path_1_3_2[] = { PERS_1 | HAND_R | HAND_T | L523, PERS_1 | HAND_R
 const uint16_t path_1_mis[] = { PERS_1 | HAND_L | HAND_B | L526, PERS_1 | HAND_L | HAND_T | L518, PERS_X | L434, L433, L432, L401, L337, L302, L237, L218, L215, L204, 255 };
 const uint16_t path_2_0_1[] = { PERS_2 | HAND_R | HAND_B | L506, PERS_2 | HAND_R | HAND_T | L510, PERS_X | L511, PERS_0 | HAND_R | HAND_T | L513, L514, L516, L517, 255 };
 const uint16_t path_2_0_2[] = { PERS_2 | HAND_L | HAND_B | L422, PERS_2 | HAND_L | HAND_T | L423, PERS_X | L424, PERS_0 | HAND_L | HAND_B | L425, L426, L427, L428, 255 };
+const uint16_t path_2_3_1[] = { PERS_2 | HAND_L | HAND_T | L423, PERS_2 | HAND_L | HAND_B | L422, PERS_X | PERS_3 | HAND_L | HAND_B | L502, L507, L509, PERS_3 | HAND_L | HAND_B | L535, 255 };
 const uint16_t path_2_mis[] = { PERS_X | L410, L308, L232, L223, L211, 255 };
 const uint16_t path_3_0_1[] = { PERS_3 | HAND_R | HAND_B | L604, PERS_3 | HAND_R | HAND_T | L605, PERS_X | L607, PERS_0 | HAND_R | HAND_B | L609, L532, L529, PERS_0 | HAND_R | HAND_B | L516, 255 };
 const uint16_t path_3_1_1[] = { PERS_3 | HAND_L | HAND_B | L535, PERS_3 | HAND_L | HAND_T | L534, PERS_X | L533, PERS_1 | HAND_L | HAND_B | L531, L527, PERS_1 | HAND_L | HAND_B | L526, 255 };
 const uint16_t path_3_1_2[] = { PERS_3 | HAND_R | HAND_B | L604, PERS_3 | HAND_R | HAND_T | L605, PERS_X | L606, PERS_1 | HAND_R | HAND_B | L610, L612, PERS_1 | HAND_R | HAND_B | L524, 255 };
+const uint16_t path_3_2_1[] = { PERS_3 | HAND_L | HAND_T | L534, PERS_3 | HAND_L | HAND_B | L535, PERS_X | PERS_2 | HAND_L | HAND_B | L509, L507, PERS_2 | HAND_L | HAND_B | L422, 255 };
+const uint16_t path_3_mis[] = { PERS_3 | HAND_L | HAND_T | L534, PERS_3 | HAND_L | HAND_B | L535, PERS_X | L509, L507, L502, L414, L415, L327, L312, L229, L224, 255 };
 const uint16_t path_t_bck[] = { L204, L215, L218, PERS_0 | HAND_L | HAND_T | L237, L302, L337, PERS_0 | HAND_L | HAND_T | L404, 255 };
 const uint16_t path_m_bck[] = { L211, L223, PERS_2 | HAND_L | HAND_T | L232, L308, L410, PERS_2 | HAND_L | HAND_T | L423, 255 };
+const uint16_t path_b_bck[] = { L224, L229, L312, L327, PERS_2 | HAND_L | HAND_B | L415, L414, PERS_2 | HAND_L | HAND_B | L422, 255 };
 
 uint8_t anim_fbeepos = 255;	/* current frisbeeposition */
 const uint16_t *anim_fbeepath;	/* current frisbeepath */
@@ -378,22 +382,25 @@ uint8_t animate_newfrisbee(Pixel *scr, uint8_t p)
 				anim_fbeepath = path_2_mis;
 				catcher = PERSON_LOST;
 			} else {
-				//FIXME: different catchers
-				r = rand() % 2;
+				r = rand() % 3;
 				if (0 == r) {
 					anim_fbeepath = path_2_0_1;
 					catcher = 0;
 				} else if (1 == r) {
 					anim_fbeepath = path_2_0_2;
 					catcher = 0;
+				} else if (2 == r) {
+					anim_fbeepath = path_2_3_1;
+					catcher = 3;
 				}
 			}
 			break;
 		case 3:
-			if (0 == 1) {
-				//FIXME: miss
+			if (0 == (rand() % PROB_MISS)) {
+				anim_fbeepath = path_3_mis;
+				catcher = PERSON_LOST;
 			} else {
-				r = rand() % 3;
+				r = rand() % 4;
 				if (0 == r) {
 					anim_fbeepath = path_3_1_1;
 					catcher = 1;
@@ -403,6 +410,9 @@ uint8_t animate_newfrisbee(Pixel *scr, uint8_t p)
 				} else if (2 == r) {
 					anim_fbeepath = path_3_0_1;
 					catcher = 0;
+				} else if (3 == r) {
+					anim_fbeepath = path_3_2_1;
+					catcher = 2;
 				}
 			}
 			break;
@@ -415,17 +425,21 @@ uint8_t animate_newfrisbee(Pixel *scr, uint8_t p)
 			anim_fbeepath = path_m_bck;
 			catcher = PERSON_BACK_M;
 			break;
-//		case PERSON_BACK_B:
-//			anim_fbeepath = path_b_bck;
-//			catcher = PERSON_BACK_M;
-//			break;
+		case PERSON_BACK_B:
+			anim_fbeepath = path_b_bck;
+			catcher = PERSON_BACK_B;
+			break;
 	}
 #endif
 
 #if 0 //DEBUGGING HELP to enable special case stuff
 if (2 == p) {
-	anim_fbeepath = path_2_mis;
-	catcher = PERSON_LOST;
+	anim_fbeepath = path_2_3_1;
+	catcher = 3;
+}
+if (3 == p) {
+	anim_fbeepath = path_3_2_1;
+	catcher = 2;
 }
 #endif
 	if (anim_fbeepath) {
