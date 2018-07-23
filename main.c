@@ -289,6 +289,7 @@ int main(void)
 {
 	int i, j, c, p;
 	char inputbuf[80];
+	int brk = 0;
 
 	fullspeed();
 
@@ -377,6 +378,23 @@ int main(void)
 						printf("%c", c);
 					}
 				}
+			}
+		} else if (0 == c) {
+			/* real break detection has to check the FE bit in the SR register, but this is good enough to detect a jumper between RX and GND */
+printf("brk %d\r\n", brk);
+			if (10 == ++brk) {
+				char s[10];
+printf("xx1\r\n");
+				cmd_stopanim("1");
+printf("xx2\r\n");
+				cmd_stopanim("2");
+printf("xx3\r\n");
+				cmd_stopanim("3");
+printf("xx4\r\n");
+				strcpy(s, "10 10 10");
+printf("xx5\r\n");
+				cmd_test(s);
+printf("xx6\r\n");
 			}
 		}
 		fflush(stdout);
