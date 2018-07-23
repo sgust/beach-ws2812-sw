@@ -300,7 +300,7 @@ int main(void)
 	GPIOA->CRH |= 0x4 << 8; /* PA10 RX, input */
 	init_uart(USART1, 115200);
 
-	printf("\r\nHello\r\n");
+	printf("\r\nBeach scene with WS2812 RGB LEDs V1.0\r\n");
 
 	RCC->APB2ENR |= RCC_APB2ENR_IOPCEN;
 	GPIOC->CRL=0x44444333;
@@ -309,8 +309,6 @@ int main(void)
 	rgbled_init();
 	systicktimer_init();
 	__enable_irq();
-
-	printf("IRQ on\r\n");
 
 	/* clear screen */
 	for(i = 0; i < NUMLEDS; i++) {
