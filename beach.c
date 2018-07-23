@@ -497,9 +497,3 @@ int animate_frisbee(Pixel *scr)
 	}
 	return need_update;
 }
-
-/* FIXME
- *
- * move arms randomly (not in frisbee path)
- * brightness control
- */
