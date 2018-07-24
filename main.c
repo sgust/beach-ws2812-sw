@@ -51,7 +51,15 @@ void init_uart(USART_TypeDef *uart, unsigned int baud)
 
 int uart_getc(USART_TypeDef *uart)
 {
-	if (uart->SR & USART_SR_RXNE) return (uint8_t) uart->DR; else return -1;
+	int sr;
+	uint8_t data;
+
+	sr = uart->SR;
+	if (sr & USART_SR_RXNE) {
+		data = (uint8_t) uart->DR;
+		if ((sr & USART_SR_FE) && (0 == data)) return -2; /* BREAK */
+		return (uint8_t) data;
+	} else return -1; /* no data */
 }
 
 /* 8 MHz HSE with PLL to 72MHz */
@@ -289,12 +297,25 @@ int main(void)
 {
 	int i, j, c, p;
 	char inputbuf[80];
-	int brk = 0;
+	int jumper = 0;
 
 	fullspeed();
 
+	__disable_irq();
+	rgbled_init();
+	systicktimer_init();
+	__enable_irq();
+
 	/* USART1 on PA9/PA10 */
 	RCC->APB2ENR |= RCC_APB2ENR_IOPAEN | RCC_APB2ENR_AFIOEN | RCC_APB2ENR_USART1EN;
+	/* check for jumper on RX to GND */
+	GPIOA->BSRR = (1 << 10); /* pull-up */
+	GPIOA->CRH &= ~(0xf << 8);
+	GPIOA->CRH |= 0x8 << 8; /* PA10 RX, input pull */
+	systicktimer_sleepms(10); /* let input settle */
+	if (0 == (GPIOA->IDR & (1 << 10))) jumper = 1;
+	/* switch I/O to USART */
+	GPIOA->BSRR = (1 << 26); /* pull-up off */
 	GPIOA->CRH &= ~((0xf << 4) | (0xf << 8));
 	GPIOA->CRH |= 0xb << 4; /* PA9 TX, alt function push-pull */
 	GPIOA->CRH |= 0x4 << 8; /* PA10 RX, input */
@@ -304,11 +325,6 @@ int main(void)
 
 	RCC->APB2ENR |= RCC_APB2ENR_IOPCEN;
 	GPIOC->CRL=0x44444333;
-
-	__disable_irq();
-	rgbled_init();
-	systicktimer_init();
-	__enable_irq();
 
 	/* clear screen */
 	for(i = 0; i < NUMLEDS; i++) {
@@ -354,6 +370,15 @@ int main(void)
 	timer_wave = systicktimer_time() + TIME_WAVE;
 	timer_color = systicktimer_time() + TIME_FRISBEE_COLOR;
 	timer_fbee = systicktimer_time() + TIME_FRISBEE_MOVE;
+	if (jumper) {
+		/* jumper on RX and GND */
+		char s[10];
+		cmd_stopanim("1");
+		cmd_stopanim("2");
+		cmd_stopanim("3");
+		strcpy(s, "10 10 10");
+		cmd_test(s);
+	}
 	while (1) {
 		c = uart_getc(USART1);
 		if (c > 0) {
@@ -376,23 +401,6 @@ int main(void)
 						printf("%c", c);
 					}
 				}
-			}
-		} else if (0 == c) {
-			/* real break detection has to check the FE bit in the SR register, but this is good enough to detect a jumper between RX and GND */
-printf("brk %d\r\n", brk);
-			if (10 == ++brk) {
-				char s[10];
-printf("xx1\r\n");
-				cmd_stopanim("1");
-printf("xx2\r\n");
-				cmd_stopanim("2");
-printf("xx3\r\n");
-				cmd_stopanim("3");
-printf("xx4\r\n");
-				strcpy(s, "10 10 10");
-printf("xx5\r\n");
-				cmd_test(s);
-printf("xx6\r\n");
 			}
 		}
 		fflush(stdout);
